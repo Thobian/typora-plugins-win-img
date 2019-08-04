@@ -13,7 +13,7 @@
 
 作为码农，实在没法忍受这样的事情，所以尝试自己去写个typora“插件”（typora并不支持插件功能，实际做法是强行加代码）解决这个问题。
 
-![微信截图_20190804132121](http://www.robot.com/4077e33ef099391766d89fc50e669226.png)
+![演示截图](https://static.jiebianjia.com/typora/4077e33ef099391766d89fc50e669226.png)
 
 ### 使用
 
