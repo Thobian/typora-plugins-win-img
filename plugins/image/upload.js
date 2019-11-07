@@ -130,7 +130,7 @@
     // 上传文件的方法
     var upload = {
         // 自建服务器存储时，适用的上传方法
-        self : function(){
+        self : function(fileData, successCall, failureCall){
             var xhr = new XMLHttpRequest();
             // 文件上传成功或是失败
             xhr.onreadystatechange = function(e) {
@@ -159,9 +159,9 @@
                 }
             };
             // 开始上传
-            xhr.open("POST", setting.url, true);
-            for(var key in setting.headers){
-                xhr.setRequestHeader(key, setting.headers[key]);
+            xhr.open("POST", setting.self.url, true);
+            for(var key in setting.self.headers){
+                xhr.setRequestHeader(key, setting.self.headers[key]);
             }
             xhr.send(fileData);
         },
@@ -286,4 +286,4 @@
     };
 })(jQuery);
 
-$.image.init();
+$.image.init({target:'self'});
