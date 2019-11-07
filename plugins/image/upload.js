@@ -286,4 +286,4 @@
     };
 })(jQuery);
 
-$.image.init({target:'self'});
+$.image.init();
