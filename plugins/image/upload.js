@@ -2,9 +2,9 @@
     // 配置信息
     var setting = {
         //==============重要说明==============
-        //文件上传到哪里，取值有：self/tencent
-        //self指自建的服务器、tencent指腾讯云的COS
-        target:'tencent',
+        //文件上传到哪里，取值有：self/tencent/aliyun
+        //self指自建的服务器、tencent指腾讯云的COS、aliyun值的是阿里云OSS
+        target:'self',
         
         //target=self 时涉及的配置参数
         self: {
@@ -26,7 +26,7 @@
             SecretId: 'AKID5IFPK30gjWxzkFr6jCTUIq7G3Z4fIsb3',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
             SecretKey: 'KRUGmjPodVZMxrXxA6mNvGK8gxx97oGR',      // 访问控制->用户->用户列表->用户详情->API密钥 下查看
             Region: 'ap-guangzhou',                             // 对象存储->存储桶列表(所属地域中的英文就是Region)
-            folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
+            Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
 
             // 可选参数
             FileParallelLimit: 3,                               // 控制文件上传并发数
@@ -35,6 +35,21 @@
             ProgressInterval: 1,                                // 控制 onProgress 回调的间隔
             ChunkRetryTimes: 3,                                 // 控制文件切片后单片上传失败后重试次数
             UploadCheckContentMd5: true,                        // 上传过程计算 Content-MD5
+        },
+        //target=aliyun 时涉及的配置参数
+        aliyun : {
+            // 必须参数，如果你有自己的阿里云OSS改成自己的配置
+            SecretId: 'LTAI4FfAi5d9Bd6bT6bc9LYL',               // 
+            SecretKey: 'D4ApnTuIO3caXQhHHM59THysdoCAc7',        // 
+            Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
+            BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/',
+            
+            policyText: {
+                "expiration": "9021-01-01T12:00:00.000Z", //设置该Policy的失效时间，超过这个失效时间之后，就没有办法通过这个policy上传文件了
+                "conditions": [
+                    ["content-length-range", 0, 524288] // 设置上传文件的大小限制 512kb
+                ]
+            },
         },
         
         //==============回调函数==============
@@ -98,6 +113,12 @@
             console.log("the file ext is: "+ext);
             return ext;
         },
+        mine: function(base64){
+            var arr  = base64.split(',');
+            var mime = arr[0].match(/:(.*?);/)[1] || 'image/png';
+            console.log("the file mime is: "+mime);
+            return mime;
+        },
         // 时间格式化函数
         dateFormat: function (date, fmt) {
             var o = {
@@ -124,6 +145,15 @@
         // 上传到腾讯云COS时的初始化方法
         tencent: function(){
             $.getScript( "./plugins/image/cos-js-sdk-v5.min.js" );
+        },
+        // 上传到阿里云OSS时的初始化方法
+        aliyun: function(){
+            $.getScript( "./plugins/image/crypto/crypto/crypto.js", function(){
+                $.getScript( "./plugins/image/crypto/hmac/hmac.js" );
+                $.getScript( "./plugins/image/crypto/sha1/sha1.js" );
+                $.getScript( "./plugins/image/crypto/base64.js" );
+                $.getScript( "./plugins/image/crypto/plupload.full.min.js" );
+            });
         }
     };
     
@@ -140,21 +170,19 @@
                         try{
                             var json = JSON.parse(xhr.responseText);
                             if(json.code){
-                                var error = json.message+'('+json.code+')';
-                                failureCall(error);
+                                return failureCall(json.message+'('+json.code+')');
                             }else{
                                 var url = json.data.url;
                                 successCall(url);
                             }
-                        }catch(e){
-                            var error = '服务响应解析失败，错误：'+e.message+'(code:98)';
-                            failureCall(error);
-                            console.log(e);
+                        }catch(err){
+                            console.log(err);
+                            return failureCall('服务响应解析失败，错误：'+err.message);
                         }
                     } else {
-                        var error = '网络错误，请重试。(code:99)<br />'+xhr.responseText;
-                        failureCall(error);
                         console.log(xhr.responseText);
+                        var error = '网络错误，请重试。<br />'+xhr.responseText;
+                        return failureCall(error);
                     }
                 }
             };
@@ -169,7 +197,7 @@
         // 使用腾讯云存储时，适用的上传方法
         tencent : function(fileData, successCall, failureCall){
             // 初始化COS
-            var cos = new COS({
+            var client = new COS({
                 SecretId: setting.tencent.SecretId,
                 SecretKey: setting.tencent.SecretKey,
                 // 可选参数
@@ -181,9 +209,9 @@
                 UploadCheckContentMd5: setting.tencent.UploadCheckContentMd5,
             });
             // 转化
-            var filename = setting.tencent.folder+'/'+helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = setting.tencent.Folder+'/'+helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var fileData = helper.base64ToBlob(fileData);
-            cos.sliceUploadFile({
+            client.sliceUploadFile({
                 Bucket: setting.tencent.Bucket,
                 Region: setting.tencent.Region,
                 Key: filename,
@@ -199,17 +227,49 @@
                 console.log(data);
                 // 出现错误，打印错误信息
                 if(err){
-                    failureCall('服务返回异常，错误：'+err.error);
-                    console.log(err);
-                    return false;
+                    return failureCall('服务返回异常，错误：'+err.error);
                 }
                 try{
                     successCall('https://'+data.Location);
-                }catch(e){
+                }catch(err){
+                    console.log(err);
                     // 出现非预期结果，打印错误
-                    failureCall('服务响应解析失败，错误：'+e.message);
-                    console.log(e);
-                    return false;
+                    return failureCall('服务响应解析失败，错误：'+err.message);
+                }
+            });
+        },
+        
+        // 使用阿里云存储时，适用的上传方法
+        aliyun: function(fileData, url, successCall, failureCall){
+            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filepath = setting.aliyun.Folder+'/'+filename;
+            var policyBase64 = Base64.encode(JSON.stringify(setting.aliyun.policyText));
+            var bytes = Crypto.HMAC(Crypto.SHA1, policyBase64, setting.aliyun.SecretKey, { asBytes: true }) ;
+            var signature = Crypto.util.bytesToBase64(bytes);
+            
+            var fileData = helper.base64ToBlob(fileData);
+            var formData = new FormData();
+            formData.append('name', filename);
+            formData.append('key', filepath);
+            formData.append('policy', policyBase64);
+            formData.append('OSSAccessKeyId', setting.aliyun.SecretId);
+            formData.append('success_action_status', 200);
+            formData.append('signature', signature);
+            formData.append('file', fileData);
+            $.ajax({
+                type: "POST",
+                url: setting.aliyun.BucketDomain,
+                processData:false,
+                data:formData,
+                contentType: false,
+                success: function(result) {
+                    //奇葩的阿里云，响应内容为空
+                    console.log(result);
+                    successCall(setting.aliyun.BucketDomain+filepath);
+                },
+                error:function(result){
+                    console.log(result);
+                    failureCall('服务响应解析失败，请稍后再试');
                 }
             });
         }
@@ -229,8 +289,11 @@
                     case 'tencent':
                         upload.tencent(reader.result, setting.onSuccess, setting.onFailure);
                         break;
+                    case 'aliyun':
+                        upload.aliyun(reader.result, url, setting.onSuccess, setting.onFailure);
+                        break;
                     default:
-                        failureCall('配置错误，不支持的图片上传方式，可选方式：self/tencent');
+                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun');
                 } 
             }
             reader.readAsDataURL(xhr.response);
@@ -258,8 +321,9 @@
             case 'tencent':
                 init.tencent();
                 break;
-            default:
-                failureCall('配置错误，不支持的图片上传方式，可选方式：self/tencent');
+            case 'aliyun':
+                init.aliyun();
+                break;
         }
         
         // 监听鼠标事件
@@ -279,7 +343,8 @@
                     element.attr(locked, '1');
                 }
                 $('content').prepend('<div id="'+noticeEle+'" style="position:fixed;height:40px;line-height:40px;padding:0 15px;overflow-y:auto;overflow-x:hidden;z-index:10;color:#fff;width:100%;display:none;"></div>');
-                //上传
+                //转换成普通的图片地址
+                src = src.substring(8, src.indexOf('?last'));
                 loadImgAndSend(src);
             }catch(e){console.log(e);};
         });
