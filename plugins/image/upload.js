@@ -2,9 +2,13 @@
     // 配置信息
     var setting = {
         //==============重要说明==============
-        //文件上传到哪里，取值有：self/tencent/aliyun
-        //self指自建的服务器、tencent指腾讯云的COS、aliyun值的是阿里云OSS
-        target:'self',
+        //文件上传到哪里，取值有：self/tencent/aliyun/upyun/qiniu
+        //self指自建的服务器
+        //tencent指腾讯云的COS
+        //aliyun指阿里云OSS
+        //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
+        //qiniu指七牛云
+        target:'qiniu',
         
         //target=self 时涉及的配置参数
         self: {
@@ -39,16 +43,38 @@
         //target=aliyun 时涉及的配置参数
         aliyun : {
             // 必须参数，如果你有自己的阿里云OSS改成自己的配置
-            SecretId: 'LTAI4FfAi5d9Bd6bT6bc9LYL',               // 
-            SecretKey: 'D4ApnTuIO3caXQhHHM59THysdoCAc7',        // 
+            SecretId: 'LTAI4FfAi5d9Bd6bT6bc9LYL',               // 需要先创建 RAM 用户，同时访问方式选择“编程访问”，详细帮助文档：https://help.aliyun.com/document_detail/28637.html
+            SecretKey: 'D4ApnTuIO3caXQhHHM59THysdoCAc7',        // 只想说阿里的这个RAM做的还真的有点难以理解和使用
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
-            BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/',
+            BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/', // 存储空间下有个：Bucket 域名 挑一个就好了
             
             policyText: {
-                "expiration": "9021-01-01T12:00:00.000Z", //设置该Policy的失效时间，超过这个失效时间之后，就没有办法通过这个policy上传文件了
+                "expiration": "9021-01-01T12:00:00.000Z",       //设置该Policy的失效时间，超过这个失效时间之后，就没有办法上传文件了
                 "conditions": [
-                    ["content-length-range", 0, 524288] // 设置上传文件的大小限制 512kb
+                    ["content-length-range", 0, 524288]         // 设置上传文件的大小限制 512kb，可以根据自己的需要调整
                 ]
+            },
+        },
+        //target=upyun 时涉及的配置参数
+        upyun : {
+            // 必须参数，如果你有自己的阿里云OSS改成自己的配置
+            Username: 'typora',                              // 用户名
+            Password: '8sCz8tfHcho2JOFcB174jrDEkKi3MuaB',    // 密码
+            Folder: 'typora',                                // 可以把上传的图片都放到这个指定的文件夹下
+            Bucket : 'jiebianjia',                           // 存储桶 或者又叫服务名称
+            Domain : 'http://v0.api.upyun.com/',             // 智能选路（官方推荐，一般不用改）
+        },
+        //target=qiniu 时涉及的配置参数
+        qiniu : {
+            UploadDomain: 'https://upload-z2.qiniup.com',               // 上传地址，需要根据你存储空间所在位置选择对应“客户端上传”地址 详细说明：https://developer.qiniu.com/kodo/manual/1671/region-endpoint
+            AccessDomain: 'http://q1701tver.bkt.clouddn.com/',          // 上传后默认只会返回相对访问路径，需要设置好存储空间的访问地址。进入“文件管理”下面可以看到个“外链域名”就是你的地址了。注意保留前面的：http://，以及后面的：/
+            AccessKey : 'SesGGZ8LCt3q8F0OwBk6Pqjk6pBN630Aj3s59toX',     // AK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
+            SecretKey: 'w2O1xiZ26q-sv-4tQkxERPwcbTPGt6vi4PSw_q2S',      // SK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
+            Folder: 'typora',                                           // 可以把上传的图片都放到这个指定的文件夹下
+            
+            policyText: {
+                scope: "jiebianjia",                                    // 对象存储->空间名称，访问控制记得设置成公开
+                deadline: 225093916800,                                 // 写死了：9102-12-12日，动态的好像偶尔会签名要不过
             },
         },
         
@@ -152,7 +178,23 @@
                 $.getScript( "./plugins/image/crypto/hmac/hmac.js" );
                 $.getScript( "./plugins/image/crypto/sha1/sha1.js" );
                 $.getScript( "./plugins/image/crypto/base64.js" );
-                $.getScript( "./plugins/image/crypto/plupload.full.min.js" );
+            });
+        },
+        // 上传到又拍云时的初始化方法
+        upyun: function(){
+            $.getScript( "./plugins/image/crypto/crypto/crypto.js", function(){
+                $.getScript( "./plugins/image/crypto/hmac/hmac.js" );
+                $.getScript( "./plugins/image/crypto/sha1/sha1.js" );
+                $.getScript( "./plugins/image/crypto/md5/md5.js" );
+                $.getScript( "./plugins/image/crypto/base64.js" );
+            });
+        },
+        // 上传到七牛云时的初始化方法
+        qiniu: function(){
+            $.getScript( "./plugins/image/crypto/crypto/crypto.js", function(){
+                $.getScript( "./plugins/image/crypto/hmac/hmac.js" );
+                $.getScript( "./plugins/image/crypto/sha1/sha1.js" );
+                $.getScript( "./plugins/image/crypto/base64.js" );
             });
         }
     };
@@ -240,7 +282,7 @@
         },
         
         // 使用阿里云存储时，适用的上传方法
-        aliyun: function(fileData, url, successCall, failureCall){
+        aliyun: function(fileData, successCall, failureCall){
             var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var filepath = setting.aliyun.Folder+'/'+filename;
             var policyBase64 = Base64.encode(JSON.stringify(setting.aliyun.policyText));
@@ -272,12 +314,79 @@
                     failureCall('服务响应解析失败，请稍后再试');
                 }
             });
+        },
+        
+        // 使用又拍云存储时，适用的上传方法
+        upyun: function(fileData, successCall, failureCall){
+            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filepath = '/'+setting.upyun.Folder+'/'+filename;
+            var fileData = helper.base64ToBlob(fileData);
+            
+            var authorization = 'Basic '+window.btoa(setting.upyun.Username+':'+setting.upyun.Password);
+            
+            
+            var formData = new FormData();
+            formData.append('bucket', setting.upyun.Bucket);
+            formData.append('save-key', filepath);
+            formData.append('expiration', Math.floor(new Date().getTime() / 1000) + 600);
+            formData.append('file', fileData);
+            $.ajax({
+                type: "POST",
+                url: setting.upyun.Domain+setting.upyun.Bucket,
+                processData:false,
+                data:formData,
+                contentType: false,
+                beforeSend:function(request){
+                    request.setRequestHeader("Authorization", authorization);
+                },
+                success: function(result) {
+                    console.log(result);
+                    //successCall(setting.aliyun.BucketDomain+filepath);
+                },
+                error:function(result){
+                    console.log(result);
+                    failureCall('服务响应解析失败，请稍后再试');
+                }
+            });
+        },
+        
+        // 使用七牛云存储时，适用的上传方法
+        qiniu: function(fileData, successCall, failureCall){
+            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filepath = setting.qiniu.Folder+'/'+filename;
+            
+            var policyBase64 = Base64.encode(JSON.stringify(setting.qiniu.policyText));
+            var bytes = Crypto.HMAC(Crypto.SHA1, policyBase64, setting.qiniu.SecretKey, { asBytes: true }) ;
+            var encodedSign = Crypto.util.bytesToBase64(bytes);
+            var uploadToken = setting.qiniu.AccessKey + ':' + encodedSign + ':' + policyBase64;
+            
+            var fileData = helper.base64ToBlob(fileData);
+            var formData = new FormData();
+            formData.append('name', filename);
+            formData.append('key', filepath);
+            formData.append('token', uploadToken);
+            formData.append('file', fileData);
+            $.ajax({
+                type: "POST",
+                url: setting.qiniu.UploadDomain,
+                processData:false,
+                data:formData,
+                contentType: false,
+                success: function(result) {
+                    console.log(result);
+                    successCall(setting.qiniu.AccessDomain+filepath);
+                },
+                error:function(result){
+                    console.log(result);
+                    failureCall('服务响应解析失败，请稍后再试');
+                }
+            });
         }
     };
     
     
     //读取文件为base64，再回调上传函数将文件发到服务器
-    var loadImgAndSend = function(url, object){
+    var loadImgAndSend = function(url){
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
             var reader = new FileReader();
@@ -290,10 +399,16 @@
                         upload.tencent(reader.result, setting.onSuccess, setting.onFailure);
                         break;
                     case 'aliyun':
-                        upload.aliyun(reader.result, url, setting.onSuccess, setting.onFailure);
+                        upload.aliyun(reader.result, setting.onSuccess, setting.onFailure);
+                        break;
+                    case 'upyun':
+                        upload.upyun(reader.result, setting.onSuccess, setting.onFailure);
+                        break;
+                    case 'qiniu':
+                        upload.qiniu(reader.result, setting.onSuccess, setting.onFailure);
                         break;
                     default:
-                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun');
+                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/upyun');
                 } 
             }
             reader.readAsDataURL(xhr.response);
@@ -311,7 +426,6 @@
         options = options||{};
         setting.target = options.target||setting.target;
         setting.self = options.self||setting.self;
-        setting.tencent = options.tencent||setting.tencent;
         
         // 根据不同的文件存储位置，初始化不同的环境
         switch (setting.target) {
@@ -323,6 +437,11 @@
                 break;
             case 'aliyun':
                 init.aliyun();
+            case 'upyun':
+                init.upyun();
+                break;
+            case 'qiniu':
+                init.qiniu();
                 break;
         }
         
@@ -344,7 +463,7 @@
                 }
                 $('content').prepend('<div id="'+noticeEle+'" style="position:fixed;height:40px;line-height:40px;padding:0 15px;overflow-y:auto;overflow-x:hidden;z-index:10;color:#fff;width:100%;display:none;"></div>');
                 //转换成普通的图片地址
-                src = src.substring(8, src.indexOf('?last'));
+                //src = src.substring(8, src.indexOf('?last'));
                 loadImgAndSend(src);
             }catch(e){console.log(e);};
         });
