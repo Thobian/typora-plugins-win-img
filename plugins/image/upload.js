@@ -27,8 +27,8 @@
             
             // 必须参数，如果你有自己的腾讯云COS改成自己的配置
             Bucket: 'jiebianjia-1252439934',                    // 对象存储->存储桶列表(存储桶名称就是Bucket)
-            SecretId: 'AKID5IFPK30gjWxzkFr6jCTUIq7G3Z4fIsb3',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
-            SecretKey: 'KRUGmjPodVZMxrXxA6mNvGK8gxx97oGR',      // 访问控制->用户->用户列表->用户详情->API密钥 下查看
+            SecretId: '111111111111111111111111111111111111',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
+            SecretKey: '11111111111111111111111111111111',      // 访问控制->用户->用户列表->用户详情->API密钥 下查看
             Region: 'ap-guangzhou',                             // 对象存储->存储桶列表(所属地域中的英文就是Region)
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
 
@@ -43,8 +43,8 @@
         //target=aliyun 时涉及的配置参数
         aliyun : {
             // 必须参数，如果你有自己的阿里云OSS改成自己的配置
-            SecretId: 'LTAI4FfAi5d9Bd6bT6bc9LYL',               // 需要先创建 RAM 用户，同时访问方式选择“编程访问”，详细帮助文档：https://help.aliyun.com/document_detail/28637.html
-            SecretKey: 'D4ApnTuIO3caXQhHHM59THysdoCAc7',        // 只想说阿里的这个RAM做的还真的有点难以理解和使用
+            SecretId: '111111111111111111111111',               // 需要先创建 RAM 用户，同时访问方式选择“编程访问”，详细帮助文档：https://help.aliyun.com/document_detail/28637.html
+            SecretKey: '111111111111111111111111111111',        // 只想说阿里的这个RAM做的还真的有点难以理解和使用
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
             BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/', // 存储空间下有个：Bucket 域名 挑一个就好了
             
@@ -59,7 +59,7 @@
         upyun : {
             // 必须参数，如果你有自己的阿里云OSS改成自己的配置
             Username: 'typora',                              // 用户名
-            Password: '8sCz8tfHcho2JOFcB174jrDEkKi3MuaB',    // 密码
+            Password: '11111111111111111111111111111111',    // 密码
             Folder: 'typora',                                // 可以把上传的图片都放到这个指定的文件夹下
             Bucket : 'jiebianjia',                           // 存储桶 或者又叫服务名称
             Domain : 'http://v0.api.upyun.com/',             // 智能选路（官方推荐，一般不用改）
@@ -68,8 +68,8 @@
         qiniu : {
             UploadDomain: 'https://upload-z2.qiniup.com',               // 上传地址，需要根据你存储空间所在位置选择对应“客户端上传”地址 详细说明：https://developer.qiniu.com/kodo/manual/1671/region-endpoint
             AccessDomain: 'http://q1701tver.bkt.clouddn.com/',          // 上传后默认只会返回相对访问路径，需要设置好存储空间的访问地址。进入“文件管理”下面可以看到个“外链域名”就是你的地址了。注意保留前面的：http://，以及后面的：/
-            AccessKey : 'SesGGZ8LCt3q8F0OwBk6Pqjk6pBN630Aj3s59toX',     // AK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
-            SecretKey: 'w2O1xiZ26q-sv-4tQkxERPwcbTPGt6vi4PSw_q2S',      // SK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
+            AccessKey : '1111111111111111111111111111111111111111',     // AK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
+            SecretKey: '1111111111111111111111111111111111111111',      // SK通过“密钥管理”页面可以获取到，地址：https://portal.qiniu.com/user/key
             Folder: 'typora',                                           // 可以把上传的图片都放到这个指定的文件夹下
             
             policyText: {
