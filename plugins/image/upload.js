@@ -8,7 +8,7 @@
         //aliyun指阿里云OSS
         //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
         //qiniu指七牛云
-        target:'qiniu',
+        target:'self',
         
         //target=self 时涉及的配置参数
         self: {
