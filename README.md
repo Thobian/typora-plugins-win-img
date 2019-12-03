@@ -13,7 +13,7 @@
 
 作为码农，实在没法忍受这样的事情，所以尝试自己去写个typora“插件”（typora并不支持插件功能，实际做法是强行加代码）解决这个问题。
 
-![演示截图](https://static.jiebianjia.com/typora/4077e33ef099391766d89fc50e669226.png)
+![演示截图](https://static.jiebianjia.com/typora/typora.gif)
 
 ### 使用
 
@@ -39,15 +39,17 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 3. 将复制的插件代码文件，粘贴到typora安装目录下的 `resources\app` 文件夹下；
 4. 安装完成，重启typora
 
-**插件配置：**
+### 插件配置
 
-插件默认会将图片上传到本人个人站点，不能保证一直给大家提供服务，所以按照好插件后，强烈建议你换成自己的图片上传服务器。
+插件默认会将图片上传到个人站点上（[街边价](https://jiebianjia.com/?ref=github)），不能保证一直给大家提供服务，所以按照好插件后，强烈建议你换成自己的图片上传服务器。
 
-更换图片上次接口地址，打开 `plugins/image/upload.js` 文件，拉到最下面 将最后一行的 `$.image.init();` 按照下面的说明进行配置：
+更换图片上传接口地址，打开 `plugins/image/upload.js` 文件，拉到最下面 将最后一行的 `$.image.init();` 按照下面的说明进行配置：
+
+**上传到自建服务器**
 
 ```javascript
 //将图片上传地址换成你自己的后端接口，由于调用时不带登录态，请注意接口安全别被坏人利用
-//为了方式坏人利用你服务器接口，插件支持设置请求头，可一定程度避免被利用
+//为了防止坏人利用你服务器接口，插件支持设置请求头，可一定程度避免被利用
 //接口协议：
 //请求方式：POST
 //请求参数：data:image/png;base64,xxxxxx （图片原转换成base64后的值）
@@ -59,16 +61,75 @@ $.image.init({
     url:"https://you-server/the-image-upload-path",
     headers:{
         //默认: token:B40289FC92ED660F433BF0DB01577FDE
-        key:"value"  //自己定义好，并在接口里面检查避免坏人利用你接口
+        token:"value"  //自己定义好，并在接口里面检查避免坏人利用你接口
     }
 });
 ```
 
+**上传到腾讯云COS**
 
-**注意事项：**
+```javascript
+//为了你腾讯云的安全，强烈建议你为这个操作添加一个单独的子账号，并只开启API访问权限
+//添加子账号：https://console.cloud.tencent.com/cam
+//更多关于腾讯云子账号（CAM）说明：https://cloud.tencent.com/document/product/598/13665
+$.image.init({
+    target:'tencent',
+    tencent : {
+        Bucket: 'bucket-name',  // 对象存储->存储桶列表(存储桶名称就是Bucket)
+        SecretId: 'SecretId',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
+        SecretKey: 'SecretKey', // 访问控制->用户->用户列表->用户详情->API密钥 下查看
+        Region: 'Region',       // 对象存储->存储桶列表(所属地域中的英文就是Region)
+        folder: 'typora',       // 可以把上传的图片都放到这个指定的文件夹下
+    },
+});
+```
+
+**上传到阿里云OSS**
+
+```javascript
+//为了你阿里云账号的安全，强烈建议你为这个操作添加一个单独的子账号，并只开启API访问权限
+//添加子账号：https://ram.console.aliyun.com/users
+//给子账号授权：https://ram.console.aliyun.com/permissions
+//更多关于阿里云子账号（RAM）说明：https://help.aliyun.com/product/28625.html
+//SecretId 就是阿里云的：AccessKey ID
+//SecretKey 就是阿里云的：AccessKey Secret，这个值只能在你创建 AccessKey 时看到，所以要保管好，否则只能重新生成
+$.image.init({
+    target:'aliyun',
+    aliyun : {
+        // 个人觉得阿里云的这个 AccessKey 没有腾讯云的好用
+        SecretId: 'xxxx',                 // 需要先创建 RAM 用户，同时访问方式选择“编程访问”
+        SecretKey: 'xxxx',        		  // 最好是子账号的key，仅授予oss读写权限（不包括删除）
+        Folder: 'typora',                 // 可以把上传的图片都放到这个指定的文件夹下
+        BucketDomain : 'http://xxx.com/', // 存储空间下有个：Bucket 域名 挑一个就好了
+    }
+});
+```
+
+**上传到七牛云**
+
+```javascript
+//“密钥管理”页面地址：https://portal.qiniu.com/user/key
+$.image.init({
+    target:'qiniu',
+    qiniu: {
+        UploadDomain: 'https://xxx.com',  // 上传地址，需要根据你存储空间所在位置选择对应“客户端上传”地址 详细说明：https://developer.qiniu.com/kodo/manual/1671/region-endpoint
+        AccessDomain: 'http://xxx.com/', // 上传后默认只会返回相对访问路径，需要设置好存储空间的访问地址。进入“文件管理”下面可以看到个“外链域名”就是你的地址了，复制过来替换掉 xxx 就可以了。
+        AccessKey : 'xxxx',              // AK通过“密钥管理”页面可以获取到
+        SecretKey: 'xxxx',               // SK通过“密钥管理”页面可以获取到
+        Folder: 'typora',                // 可以把上传的图片都放到这个指定的文件夹下
+            
+        policyText: {
+            scope: "xxx",                // 对象存储->空间名称，访问控制记得设置成公开
+            deadline: 225093916800,      // 写死了：9102-12-12日，动态的好像偶尔会签名要不过
+        },
+    }
+});
+```
+
+### 注意事项：
 
 1. 本插件是基于typora：`0.9.68` 版本编写的，其他版本尚未测试过；
 2. `window.html` 代码文件，为typora自带文件，复制过去会替换源安装文件，以防万一可以先对它进行备份；
 3. Windows 系统盘默认会保护起来，可能需要系统管理才能操作这些文件，如粘贴失败注意看是否权限问题；
 4. 默认本地图片，将会被上传到 [街边价](https://jiebianjia.com) 这个网站，本着方便使用的原则提供了默认图片地址，但本站点属于个人站点，如使用人太多会限制使用（包括但不限于不允许上传、清理已上传文件等）；【！！重要！！】
-5. 由于`第4点`，强烈建议你按照 `插件配置` 设置你自己的后端图片上传地址；
+5. 由于`第4点`，强烈建议你按照 `插件配置` 设置你自己的图片空间；
