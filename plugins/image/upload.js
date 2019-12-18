@@ -8,7 +8,8 @@
         //aliyun指阿里云OSS
         //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
         //qiniu指七牛云
-        target:'self',
+        //github
+        target:'github',
         
         //target=self 时涉及的配置参数
         self: {
@@ -77,6 +78,14 @@
                 deadline: 225093916800,                                 // 写死了：9102-12-12日，动态的好像偶尔会签名要不过
             },
         },
+        //target=github 时涉及的配置参数
+        github:{
+            Token : '0018b26344dbae85ee04f8d5425592c6246e58eb', // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens
+            CommitterName : 'Thobian',                          // 提交人昵称，写你github的昵称
+            CommitterEmail : 'suixinsuoyu1hao@gmail.com',       // 提交人邮箱，写你github的邮箱
+            Repository : 'Thobian/typora-plugins-win-img',      // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-plugins-win-img  那就是后面的“Thobian/typora-plugins-win-img”
+            Filepath : 'typora',                                // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建
+        },
         
         //==============回调函数==============
         // 上传成功
@@ -139,6 +148,11 @@
             console.log("the file ext is: "+ext);
             return ext;
         },
+        // 根据base64获取图片内容
+        content: function(base64){
+            var content = base64.split(',')[1];
+            return content;
+        },
         mine: function(base64){
             var arr  = base64.split(',');
             var mime = arr[0].match(/:(.*?);/)[1] || 'image/png';
@@ -196,6 +210,10 @@
                 $.getScript( "./plugins/image/crypto/sha1/sha1.js" );
                 $.getScript( "./plugins/image/crypto/base64.js" );
             });
+        },
+        // 上传到github时的初始化方法
+        github: function(){
+            
         }
     };
     
@@ -381,6 +399,44 @@
                     failureCall('服务响应解析失败，请稍后再试');
                 }
             });
+        },
+        
+        // 使用github存储时，适用的上传方法
+        github: function(fileData, successCall, failureCall){
+            console.log(setting.github);
+            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var data = {
+                "message": "From:Thobian/typora-plugins-win-img",
+                "committer": {
+                    "name": setting.github.CommitterName,
+                    "email": setting.github.CommitterEmail
+                },
+                "content": helper.content(fileData)
+            };
+            $.ajax({
+                type: "PUT",
+                url: "https://api.github.com/repos/"+setting.github.Repository+"/contents/"+setting.github.Filepath+"/"+filename,
+                async: false, 
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                beforeSend: function(request){
+                    request.setRequestHeader("Authorization", "token "+setting.github.Token);
+                },
+                success: function(data) {
+                    console.log(data);
+                    try{
+                        successCall(data.content.download_url);
+                    }catch(err){
+                        console.log(err);
+                        return failureCall('服务响应解析失败，请稍后再试');
+                    }
+                },
+                error:function(result){
+                    console.log(result);
+                    failureCall('服务响应解析失败，请稍后再试');
+                }
+            })
         }
     };
     
@@ -407,8 +463,11 @@
                     case 'qiniu':
                         upload.qiniu(reader.result, setting.onSuccess, setting.onFailure);
                         break;
+                    case 'github':
+                        upload.github(reader.result, setting.onSuccess, setting.onFailure);
+                        break;
                     default:
-                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/upyun');
+                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/qiniu/github');
                 } 
             }
             reader.readAsDataURL(xhr.response);
@@ -442,6 +501,9 @@
                 break;
             case 'qiniu':
                 init.qiniu();
+                break;
+            case 'github':
+                init.github();
                 break;
         }
         
