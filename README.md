@@ -45,6 +45,24 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 
 更换图片上传接口地址，打开 `plugins/image/upload.js` 文件，拉到最下面 将最后一行的 `$.image.init();` 按照下面的说明进行配置：
 
+**上传到Github——推荐**
+
+```javascript
+//注册token的尽量不要跟其他应用共用，同时授予最小权限
+//免费+无需自己搭建服务器，是一种不错的方式
+$.image.init({
+    target:'github',
+    github:{
+        Token : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens
+        CommitterName : 'nickname',                         // 提交人昵称，写你github的昵称
+        CommitterEmail : 'email@mail.com',                  // 提交人邮箱，写你github的邮箱
+        Repository : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',      // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-plugins-win-img  那就是后面的“Thobian/typora-plugins-win-img”
+        Filepath : 'typora',                                // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建
+    }
+});
+```
+
+
 **上传到自建服务器**
 
 ```javascript
@@ -57,11 +75,14 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 //失败响应：{'code':x, 'message':'错误原因', 'data':null} 失败时，code必须未非0
 //后端接口代码可以参考代码文件：`upload.php`
 $.image.init({
-    //默认上传地址 https://jiebianjia.com/typora-plugins/upload.html
-    url:"https://you-server/the-image-upload-path",
-    headers:{
-        //默认: token:B40289FC92ED660F433BF0DB01577FDE
-        token:"value"  //自己定义好，并在接口里面检查避免坏人利用你接口
+    target:'self',
+    self:{
+        //默认上传地址 https://jiebianjia.com/typora-plugins/upload.html
+        url:"https://you-server/the-image-upload-path",
+        headers:{
+            //默认: token:B40289FC92ED660F433BF0DB01577FDE
+            token:"value"  //自己定义好，并在接口里面检查避免坏人利用你接口
+        }
     }
 });
 ```
