@@ -485,6 +485,10 @@
         options = options||{};
         setting.target = options.target||setting.target;
         setting.self = options.self||setting.self;
+        setting.tencent = options.tencent||setting.tencent;
+        setting.aliyun = options.aliyun||setting.aliyun;
+        setting.qiniu = options.qiniu||setting.qiniu;
+        setting.github = options.github||setting.github;
         
         // 根据不同的文件存储位置，初始化不同的环境
         switch (setting.target) {
