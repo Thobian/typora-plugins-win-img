@@ -34,6 +34,8 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 
 **安装步骤：**
 
+覆盖安装的方式在某些特定版本下会触发bug，建议按照这个 [issue](https://github.com/Thobian/typora-plugins-win-img/issues/5#issuecomment-565031864) 中的方法修改 `window.html` 文件而不是直接覆盖它，`plugins` 是新增目录不存在覆盖的问题。
+
 1. 下载插件代码；
 2. 复制插件相关代码文件：`window.html`、`plugins`；
 3. 将复制的插件代码文件，粘贴到typora安装目录下的 `resources\app` 文件夹下；
