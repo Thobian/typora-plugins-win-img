@@ -80,11 +80,11 @@
         },
         //target=github 时涉及的配置参数
         github:{
-            Token : '0018b26344dbae85ee04f8d5425592c6246e58eb', // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens
+            Token : 'efa094:55d913656:3de0d371bd4:26a589d5a17e12'.replace(/:/g, ''), // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens(折腾是因为github检测到token后会自动失效)
             CommitterName : 'Thobian',                          // 提交人昵称，写你github的昵称
             CommitterEmail : 'suixinsuoyu1hao@gmail.com',       // 提交人邮箱，写你github的邮箱
-            Repository : 'Thobian/typora-plugins-win-img',      // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-plugins-win-img  那就是后面的“Thobian/typora-plugins-win-img”
-            Filepath : 'typora',                                // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建
+            Repository : 'Thobian/typora-image',                // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-image  那就是后面的“Thobian/typora-image”
+            Filepath : 'demo/',                                 // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建，后面的 / 不能少
         },
         
         //==============回调函数==============
@@ -403,7 +403,6 @@
         
         // 使用github存储时，适用的上传方法
         github: function(fileData, successCall, failureCall){
-            console.log(setting.github);
             var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var data = {
                 "message": "From:Thobian/typora-plugins-win-img",
@@ -415,7 +414,7 @@
             };
             $.ajax({
                 type: "PUT",
-                url: "https://api.github.com/repos/"+setting.github.Repository+"/contents/"+setting.github.Filepath+"/"+filename,
+                url: "https://api.github.com/repos/"+setting.github.Repository+"/contents/"+setting.github.Filepath+filename,
                 async: false, 
                 data: JSON.stringify(data),
                 contentType: "application/json; charset=utf-8",
