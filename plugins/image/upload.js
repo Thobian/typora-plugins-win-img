@@ -32,14 +32,6 @@
             SecretKey: '11111111111111111111111111111111',      // 访问控制->用户->用户列表->用户详情->API密钥 下查看
             Region: 'ap-guangzhou',                             // 对象存储->存储桶列表(所属地域中的英文就是Region)
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
-
-            // 可选参数
-            FileParallelLimit: 3,                               // 控制文件上传并发数
-            ChunkParallelLimit: 3,                              // 控制单个文件下分片上传并发数
-            ChunkSize: 1024 * 1024,                             // 控制分片大小，单位 B
-            ProgressInterval: 1,                                // 控制 onProgress 回调的间隔
-            ChunkRetryTimes: 3,                                 // 控制文件切片后单片上传失败后重试次数
-            UploadCheckContentMd5: true,                        // 上传过程计算 Content-MD5
         },
         //target=aliyun 时涉及的配置参数
         aliyun : {
@@ -260,13 +252,6 @@
             var client = new COS({
                 SecretId: setting.tencent.SecretId,
                 SecretKey: setting.tencent.SecretKey,
-                // 可选参数
-                FileParallelLimit: setting.tencent.FileParallelLimit,
-                ChunkParallelLimit: setting.tencent.ChunkParallelLimit,
-                ChunkSize: setting.tencent.ChunkSize,
-                ProgressInterval: setting.tencent.ProgressInterval,
-                ChunkRetryTimes: setting.tencent.ChunkRetryTimes,
-                UploadCheckContentMd5: setting.tencent.UploadCheckContentMd5,
             });
             // 转化
             var filename = setting.tencent.Folder+'/'+helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
