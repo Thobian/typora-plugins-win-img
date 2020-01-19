@@ -40,13 +40,6 @@
             SecretKey: '111111111111111111111111111111',        // 只想说阿里的这个RAM做的还真的有点难以理解和使用
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
             BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/', // 存储空间下有个：Bucket 域名 挑一个就好了
-            
-            policyText: {
-                "expiration": "9021-01-01T12:00:00.000Z",       //设置该Policy的失效时间，超过这个失效时间之后，就没有办法上传文件了
-                "conditions": [
-                    ["content-length-range", 0, 524288]         // 设置上传文件的大小限制 512kb，可以根据自己的需要调整
-                ]
-            },
         },
         //target=upyun 时涉及的配置参数
         upyun : {
@@ -67,7 +60,7 @@
             
             policyText: {
                 scope: "jiebianjia",                                    // 对象存储->空间名称，访问控制记得设置成公开
-                deadline: 225093916800,                                 // 写死了：9102-12-12日，动态的好像偶尔会签名要不过
+                deadline: 225093916800,                                 // 写死了：9102-12-12日，动态的好像偶尔会签名验不过
             },
         },
         //target=github 时涉及的配置参数
@@ -286,9 +279,15 @@
         
         // 使用阿里云存储时，适用的上传方法
         aliyun: function(fileData, successCall, failureCall){
+            var policyText = {
+                "expiration": "9021-01-01T12:00:00.000Z",       // 设置该Policy的失效时间，超过这个失效时间之后，就没有办法上传文件了
+                "conditions": [
+                    ["content-length-range", 0, 1048576]        // 设置上传文件的大小限制1M，可以根据自己的需要调整
+                ]
+            };
             var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var filepath = setting.aliyun.Folder+'/'+filename;
-            var policyBase64 = Base64.encode(JSON.stringify(setting.aliyun.policyText));
+            var policyBase64 = Base64.encode(JSON.stringify(policyText));
             var bytes = Crypto.HMAC(Crypto.SHA1, policyBase64, setting.aliyun.SecretKey, { asBytes: true }) ;
             var signature = Crypto.util.bytesToBase64(bytes);
             
