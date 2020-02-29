@@ -70,6 +70,7 @@
             CommitterEmail : 'suixinsuoyu1hao@gmail.com',       // 提交人邮箱，写你github的邮箱
             Repository : 'Thobian/typora-image',                // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-image  那就是后面的“Thobian/typora-image”
             Filepath : 'demo/',                                 // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建，后面的 / 不能少
+            jsDelivrCND : false,                                // 是否开启GitHub图片走镜像，国内有时候访问不太方便。【注意：开启CDN后会将原github的文件地址换成 jsDelivr 的地址，如出现镜像出现国内无法访问，或者不再继续运营你的图片也将不能访问到，请谨慎开启该功能】
         },
         
         //==============回调函数==============
@@ -155,10 +156,25 @@
                 "q+": Math.floor((date.getMonth() + 3) / 3), //季度
                 "S": date.getMilliseconds() //毫秒
             };
+            fmt = fmt ? fmt : 'yyyyMM/dd/HHmmss-';
             if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
             for (var k in o)
             if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
             return fmt;
+        },
+        // github图片走 jsDelivrCND
+        jsDelivrCND: function(url){
+            // 不开启走cdn
+            if( !setting.github.jsDelivrCND ){
+                return url;
+            }
+            
+            // 原地址：https://raw.githubusercontent.com/Thobian/typora-image/master/demo/20200229104100-861146.png
+            // CDN地址：https://cdn.jsdelivr.net/gh/Thobian/typora-image@master/demo/20200229104100-861146.png
+            url = url.replace('https://raw.githubusercontent.com/', 'https://cdn.jsdelivr.net/gh/')
+                     .replace(setting.github.Repository+'/master', setting.github.Repository+'@master');
+            console.log('use jsDelivr , the new url is:'.url);
+            return url;
         }
     };
     
@@ -247,7 +263,7 @@
                 SecretKey: setting.tencent.SecretKey,
             });
             // 转化
-            var filename = setting.tencent.Folder+'/'+helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = setting.tencent.Folder+'/'+helper.dateFormat((new Date()))+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var fileData = helper.base64ToBlob(fileData);
             client.sliceUploadFile({
                 Bucket: setting.tencent.Bucket,
@@ -285,7 +301,7 @@
                     ["content-length-range", 0, 1048576]        // 设置上传文件的大小限制1M，可以根据自己的需要调整
                 ]
             };
-            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = helper.dateFormat((new Date()))+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var filepath = setting.aliyun.Folder+'/'+filename;
             var policyBase64 = Base64.encode(JSON.stringify(policyText));
             var bytes = Crypto.HMAC(Crypto.SHA1, policyBase64, setting.aliyun.SecretKey, { asBytes: true }) ;
@@ -320,7 +336,7 @@
         
         // 使用又拍云存储时，适用的上传方法
         upyun: function(fileData, successCall, failureCall){
-            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = helper.dateFormat((new Date()))+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var filepath = '/'+setting.upyun.Folder+'/'+filename;
             var fileData = helper.base64ToBlob(fileData);
             
@@ -354,7 +370,7 @@
         
         // 使用七牛云存储时，适用的上传方法
         qiniu: function(fileData, successCall, failureCall){
-            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = helper.dateFormat((new Date()))+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
             var filepath = setting.qiniu.Folder+'/'+filename;
             
             var policyBase64 = Base64.encode(JSON.stringify(setting.qiniu.policyText));
@@ -387,7 +403,9 @@
         
         // 使用github存储时，适用的上传方法
         github: function(fileData, successCall, failureCall){
-            var filename = helper.dateFormat((new Date()),'yyyyMMddHHmmss-')+Math.floor(Math.random() * Math.floor(999999))+'.'+helper.extension(fileData);
+            var filename = helper.dateFormat((new Date()))+
+                           Math.floor(Math.random() * Math.floor(999999))+'.'+
+                           helper.extension(fileData);
             var data = {
                 "message": "From:Thobian/typora-plugins-win-img",
                 "committer": {
@@ -409,7 +427,8 @@
                 success: function(data) {
                     console.log(data);
                     try{
-                        successCall(data.content.download_url);
+                        var url = helper.jsDelivrCND(data.content.download_url);
+                        successCall(url);
                     }catch(err){
                         console.log(err);
                         return failureCall('服务响应解析失败，请稍后再试');
