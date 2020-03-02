@@ -81,7 +81,7 @@
             //要提交到的分支（默认为：master）
             branch: "master",
 
-            token: 'ab6c6b63f01bcccdc373d327e49d9229', // token  
+            token: '111111111111111111111111', // token  
             userName: 'renshen_052', //用户名
             repositorie: 'myNote-img', //仓库名
             Folder: 'image', // 可以把上传的图片都放到这个指定的文件夹下
