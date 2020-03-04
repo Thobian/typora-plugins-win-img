@@ -9,7 +9,6 @@
         //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
         //qiniu指七牛云
         //github
-	    //gitee
         target:'gitee',
         
         //target=self 时涉及的配置参数
@@ -73,15 +72,15 @@
             Filepath : 'demo/',                                 // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建，后面的 / 不能少
             jsDelivrCND : false,                                // 是否开启GitHub图片走镜像，国内有时候访问不太方便。【注意：开启CDN后会将原github的文件地址换成 jsDelivr 的地址，如出现镜像出现国内无法访问，或者不再继续运营你的图片也将不能访问到，请谨慎开启该功能】
         },
-	
-	   gitee: {
+        //target=gitee 时涉及的配置参数
+        gitee: {
             // 必须参数,提交消息（默认为：add image）
             message: "add image",
 
             //要提交到的分支（默认为：master）
             branch: "master",
 
-            token: '111111111111111111111111', // token  
+            token: '1111111111111111', // token  
             userName: 'renshen_052', //用户名
             repositorie: 'myNote-img', //仓库名
             Folder: 'image', // 可以把上传的图片都放到这个指定的文件夹下
@@ -94,9 +93,6 @@
                 ]
             }
         },
-	
-	
-	
         
         //==============回调函数==============
         // 上传成功
@@ -241,9 +237,9 @@
         github: function(){
             
         }
-	   // 上传到gitee时的初始化方法
-        gitee: function(){
-            
+        // 上传到gitee时的初始化方法
+        gitee: function() {
+
         }
     };
     
@@ -469,8 +465,6 @@
                 }
             })
         },
-	
-       //码云上传
         gitee: function(fileData, url, successCall, failureCall) {
 
             var filename = helper.dateFormat((new Date()), 'yyyyMMddHHmmss-') + Math.floor(Math.random() * Math.floor(999999)) + '.' + helper.extension(fileData);
@@ -482,7 +476,7 @@
             target += "/" + setting.gitee.repositorie; //加仓库名
             target += "/contents/" + filepath; //加文件路径
 
-            //处理base64编码，github要求文件base64编码，前面不能有 "data:image/png;base64,",这些都要去掉
+            //处理base64编码，要求文件base64编码，前面不能有 "data:image/png;base64,",这些都要去掉
             var newFileData = fileData.substring(fileData.indexOf(",") + 1); //取得逗号后面的
 
             var predata = {
@@ -536,7 +530,7 @@
                     case 'github':
                         upload.github(reader.result, setting.onSuccess, setting.onFailure);
                         break;
-		            case 'gitee':
+                    case 'gitee':
                         upload.gitee(reader.result, setting.onSuccess, setting.onFailure);
                         break;
                     default:
@@ -562,7 +556,7 @@
         setting.aliyun = options.aliyun||setting.aliyun;
         setting.qiniu = options.qiniu||setting.qiniu;
         setting.github = options.github||setting.github;
-	    setting.gitee = options.gitee||setting.gitee;
+        setting.gitee = options.gitee || setting.gitee;
         
         // 根据不同的文件存储位置，初始化不同的环境
         switch (setting.target) {
@@ -583,7 +577,7 @@
             case 'github':
                 init.github();
                 break;
-	            case 'gitee':
+            case 'gitee':
                 init.gitee();
                 break;
         }
