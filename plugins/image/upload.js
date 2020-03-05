@@ -2,14 +2,15 @@
     // 配置信息
     var setting = {
         //==============重要说明==============
-        //文件上传到哪里，取值有：self/tencent/aliyun/upyun/qiniu
+        //文件上传到哪里，取值有：self/tencent/aliyun/upyun/qiniu/github/gitee
         //self指自建的服务器
         //tencent指腾讯云的COS
         //aliyun指阿里云OSS
         //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
         //qiniu指七牛云
-        //github
-        target:'gitee',
+        //github 默认上传到github
+        //gitee码云
+        target:'github',
         
         //target=self 时涉及的配置参数
         self: {
