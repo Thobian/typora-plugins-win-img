@@ -9,7 +9,7 @@
         //upyun指又拍云（目前暂不支持，sdk弄了半天没好）
         //qiniu指七牛云
         //github
-        target:'github',
+        target:'gitee',
         
         //target=self 时涉及的配置参数
         self: {
@@ -71,6 +71,27 @@
             Repository : 'Thobian/typora-image',                // github项目名，比如你的项目地址是：https://github.com/Thobian/typora-image  那就是后面的“Thobian/typora-image”
             Filepath : 'demo/',                                 // 图片在项目中的保存目录，可以不用提前创建目录，github提交时发现没有会自动创建，后面的 / 不能少
             jsDelivrCND : false,                                // 是否开启GitHub图片走镜像，国内有时候访问不太方便。【注意：开启CDN后会将原github的文件地址换成 jsDelivr 的地址，如出现镜像出现国内无法访问，或者不再继续运营你的图片也将不能访问到，请谨慎开启该功能】
+        },
+        //target=gitee 时涉及的配置参数
+        gitee: {
+            // 必须参数,提交消息（默认为：add image）
+            message: "add image",
+
+            //要提交到的分支（默认为：master）
+            branch: "master",
+
+            token: '1111111111111111', // token  
+            userName: 'renshen_052', //用户名
+            repositorie: 'myNote-img', //仓库名
+            Folder: 'image', // 可以把上传的图片都放到这个指定的文件夹下
+            BucketDomain: 'https://gitee.com/api/v5/repos/',
+
+            policyText: {
+                "expiration": "9021-01-01T12:00:00.000Z", //设置该Policy的失效时间，超过这个失效时间之后，就没有办法通过这个policy上传文件了
+                "conditions": [
+                    ["content-length-range", 0, 524288] // 设置上传文件的大小限制 512kb
+                ]
+            }
         },
         
         //==============回调函数==============
@@ -215,6 +236,10 @@
         // 上传到github时的初始化方法
         github: function(){
             
+        }
+        // 上传到gitee时的初始化方法
+        gitee: function() {
+
         }
     };
     
@@ -439,6 +464,43 @@
                     failureCall('服务响应解析失败，请稍后再试');
                 }
             })
+        },
+        gitee: function(fileData, url, successCall, failureCall) {
+
+            var filename = helper.dateFormat((new Date()), 'yyyyMMddHHmmss-') + Math.floor(Math.random() * Math.floor(999999)) + '.' + helper.extension(fileData);
+            var filepath = setting.gitee.Folder + '/' + filename;
+
+            //https://gitee.com/api/v5/repos/renshen_052/myNote/contents/image/1.png 
+            ///v5/repos/{owner}/{repo}/contents/{path}
+            var target = setting.gitee.BucketDomain + setting.gitee.userName; //加用户名
+            target += "/" + setting.gitee.repositorie; //加仓库名
+            target += "/contents/" + filepath; //加文件路径
+
+            //处理base64编码，要求文件base64编码，前面不能有 "data:image/png;base64,",这些都要去掉
+            var newFileData = fileData.substring(fileData.indexOf(",") + 1); //取得逗号后面的
+
+            var predata = {
+                "access_token": setting.gitee.token,
+                "message": setting.gitee.message,
+                "content": newFileData,
+                "branch": setting.gitee.branch
+            }
+
+            $.ajax({
+                method: "POST",
+                dataType: "json",
+                headers: { 'Content-Type': 'application/json;charset=utf8' },
+                url: target,
+                data: JSON.stringify(predata),
+                success: function(result) {
+                    console.log(result);
+                    successCall(result.content.download_url);
+                },
+                error: function(result) {
+                    console.log(result);
+                    failureCall('服务响应解析失败，请稍后再试');
+                }
+            });
         }
     };
     
@@ -468,6 +530,9 @@
                     case 'github':
                         upload.github(reader.result, setting.onSuccess, setting.onFailure);
                         break;
+                    case 'gitee':
+                        upload.gitee(reader.result, setting.onSuccess, setting.onFailure);
+                        break;
                     default:
                         setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/qiniu/github');
                 } 
@@ -491,6 +556,7 @@
         setting.aliyun = options.aliyun||setting.aliyun;
         setting.qiniu = options.qiniu||setting.qiniu;
         setting.github = options.github||setting.github;
+        setting.gitee = options.gitee || setting.gitee;
         
         // 根据不同的文件存储位置，初始化不同的环境
         switch (setting.target) {
@@ -510,6 +576,9 @@
                 break;
             case 'github':
                 init.github();
+                break;
+            case 'gitee':
+                init.gitee();
                 break;
         }
         
