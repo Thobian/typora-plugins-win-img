@@ -151,6 +151,23 @@ $.image.init({
 });
 ```
 
+**上传到码云**
+
+```javascript
+$.image.init({
+    target:'gitee',
+    gitee: {
+        message: "From:https://github.com/Thobian",     // 必须参数,提交消息
+        branch: "master",                               // 要提交到的分支（默认为：master）
+        token: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",   // token  
+        userName: "userName",                           // 用户名
+        repositorie: "repositorie",                     // 仓库名
+        Folder: "image",                                // 可以把上传的图片都放到这个指定的文件夹下
+        BucketDomain: "https://gitee.com/api/v5/repos/",
+    }
+});
+```
+
 ### 注意事项：
 
 1. 本插件是基于typora：`0.9.68` 版本编写的，其他版本尚未测试过；

@@ -75,24 +75,13 @@
         },
         //target=gitee 时涉及的配置参数
         gitee: {
-            // 必须参数,提交消息（默认为：add image）
-            message: "add image",
-
-            //要提交到的分支（默认为：master）
-            branch: "master",
-
-            token: '1111111111111111', // token  
-            userName: 'renshen_052', //用户名
-            repositorie: 'myNote-img', //仓库名
-            Folder: 'image', // 可以把上传的图片都放到这个指定的文件夹下
+            message: "From:https://github.com/Thobian",     // 必须参数,提交消息（默认为：add image）
+            branch: "master",                               // 要提交到的分支（默认为：master）
+            token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',   // token  
+            userName: 'userName',                           // 用户名
+            repositorie: 'repositorie',                     // 仓库名
+            Folder: 'image',                                // 可以把上传的图片都放到这个指定的文件夹下
             BucketDomain: 'https://gitee.com/api/v5/repos/',
-
-            policyText: {
-                "expiration": "9021-01-01T12:00:00.000Z", //设置该Policy的失效时间，超过这个失效时间之后，就没有办法通过这个policy上传文件了
-                "conditions": [
-                    ["content-length-range", 0, 524288] // 设置上传文件的大小限制 512kb
-                ]
-            }
         },
         
         //==============回调函数==============
@@ -237,7 +226,7 @@
         // 上传到github时的初始化方法
         github: function(){
             
-        }
+        },
         // 上传到gitee时的初始化方法
         gitee: function() {
 
@@ -433,7 +422,7 @@
                            Math.floor(Math.random() * Math.floor(999999))+'.'+
                            helper.extension(fileData);
             var data = {
-                "message": "From:Thobian/typora-plugins-win-img",
+                "message": "From:https://github.com/Thobian",
                 "committer": {
                     "name": setting.github.CommitterName,
                     "email": setting.github.CommitterEmail
@@ -466,20 +455,21 @@
                 }
             })
         },
-        gitee: function(fileData, url, successCall, failureCall) {
-
-            var filename = helper.dateFormat((new Date()), 'yyyyMMddHHmmss-') + Math.floor(Math.random() * Math.floor(999999)) + '.' + helper.extension(fileData);
+        
+        // 使用gitee存储时，适用的上传方法
+        gitee: function(fileData, successCall, failureCall) {
+            var filename = helper.dateFormat((new Date())) + 
+                           Math.floor(Math.random() * Math.floor(999999)) + '.' + 
+                           helper.extension(fileData);
             var filepath = setting.gitee.Folder + '/' + filename;
 
             //https://gitee.com/api/v5/repos/renshen_052/myNote/contents/image/1.png 
-            ///v5/repos/{owner}/{repo}/contents/{path}
             var target = setting.gitee.BucketDomain + setting.gitee.userName; //加用户名
             target += "/" + setting.gitee.repositorie; //加仓库名
             target += "/contents/" + filepath; //加文件路径
 
             //处理base64编码，要求文件base64编码，前面不能有 "data:image/png;base64,",这些都要去掉
             var newFileData = fileData.substring(fileData.indexOf(",") + 1); //取得逗号后面的
-
             var predata = {
                 "access_token": setting.gitee.token,
                 "message": setting.gitee.message,
@@ -504,7 +494,6 @@
             });
         }
     };
-    
     
     //读取文件为base64，再回调上传函数将文件发到服务器
     var loadImgAndSend = function(url){
