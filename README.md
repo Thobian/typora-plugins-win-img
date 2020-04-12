@@ -54,6 +54,7 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 //免费+无需自己搭建服务器，是一种不错的方式
 $.image.init({
     target:'github',
+    quality:1, //图片压缩开关，1表示原图上传 取值为：0<quality<=1，如果要压缩推荐 0.7
     github:{
         Token : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens
         CommitterName : 'nickname',                         // 提交人昵称，写你github的昵称
@@ -154,17 +155,30 @@ $.image.init({
 **上传到码云**
 
 ```javascript
+// ！！！注意当图片大于1M时， gitee 必须登录后才能查看！！！
 $.image.init({
     target:'gitee',
     gitee: {
-        message: "From:https://github.com/Thobian",     // 必须参数,提交消息
-        branch: "master",                               // 要提交到的分支（默认为：master）
-        token: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",   // token  
-        userName: "userName",                           // 用户名
-        repositorie: "repositorie",                     // 仓库名
-        Folder: "image",                                // 可以把上传的图片都放到这个指定的文件夹下
-        BucketDomain: "https://gitee.com/api/v5/repos/",
+            message: "From:https://github.com/Thobian",     // 必须参数,提交消息（默认为：add image）
+            branch: "master",                               // 要提交到的分支（默认为：master）
+            token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',   // 码云token申请地址 https://gitee.com/profile/personal_access_tokens
+            userName: 'userName',                           // 用户名 比如你的gitee个人主页地址是：https://gitee.com/thobian ，那userName就是：thobian
+            repositorie: 'repositorie',                     // 仓库名 比如你的gitee图片仓库地址是：https://gitee.com/thobian/typora，那么repositorie就是 typora
+            Folder: 'image',                                // 可以把上传的图片都放到这个指定的文件夹下
+            BucketDomain: 'https://gitee.com/api/v5/repos/',// 这个是不用变的，直接copy就好
     }
+});
+```
+
+**图片本地压缩后再上传**
+
+```javascript
+// 图片太大可以在本地进行压缩后再上传到服务器
+// 感谢 @mgsod 开源的前端压缩代码，仓库地址：https://github.com/mgsod/imgZip
+$.image.init({
+    //在原配置基础上增加下面配置开关。完整配置示例参考“上传到Github”
+    //打开图片压缩开关，1表示原图上传（默认）， 取值为：0<quality<=1，如果要压缩推荐 0.7
+    quality:0.7
 });
 ```
 
