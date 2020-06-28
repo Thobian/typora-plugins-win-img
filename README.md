@@ -105,7 +105,7 @@ $.image.init({
         SecretId: 'SecretId',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
         SecretKey: 'SecretKey', // 访问控制->用户->用户列表->用户详情->API密钥 下查看
         Region: 'Region',       // 对象存储->存储桶列表(所属地域中的英文就是Region)
-        folder: 'typora',       // 可以把上传的图片都放到这个指定的文件夹下
+        Folder: 'typora',       // 可以把上传的图片都放到这个指定的文件夹下
     },
 });
 ```
