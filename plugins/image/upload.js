@@ -40,7 +40,7 @@
             SecretId: '111111111111111111111111',               // 需要先创建 RAM 用户，同时访问方式选择“编程访问”，详细帮助文档：https://help.aliyun.com/document_detail/28637.html
             SecretKey: '111111111111111111111111111111',        // 只想说阿里的这个RAM做的还真的有点难以理解和使用
             Folder: 'typora',                                   // 可以把上传的图片都放到这个指定的文件夹下
-            BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/', // 存储空间下有个：Bucket 域名 挑一个就好了
+            BucketDomain : 'http://jiebianjia.oss-cn-shenzhen.aliyuncs.com/', // 存储空间下有个：Bucket 域名 挑一个就好了 注意：末尾的'/'不可省略，否则将导致typora无法浏览上传成功的图片
         },
         //target=upyun 时涉及的配置参数
         upyun : {
