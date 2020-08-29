@@ -54,6 +54,7 @@ typora-plugins-win-img 插件在编辑时，跟之前没有任何差别。不论
 //免费+无需自己搭建服务器，是一种不错的方式
 $.image.init({
     target:'github',
+    quality:1, //图片压缩开关，1表示原图上传 取值为：0<quality<=1，如果要压缩推荐 0.7
     github:{
         Token : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // 添加一个仅给typora使用的token 授予最小的权限（repo.public_repo） ，添加token：https://github.com/settings/tokens
         CommitterName : 'nickname',                         // 提交人昵称，写你github的昵称
@@ -104,7 +105,7 @@ $.image.init({
         SecretId: 'SecretId',   // 访问控制->用户->用户列表->用户详情->API密钥 下查看
         SecretKey: 'SecretKey', // 访问控制->用户->用户列表->用户详情->API密钥 下查看
         Region: 'Region',       // 对象存储->存储桶列表(所属地域中的英文就是Region)
-        folder: 'typora',       // 可以把上传的图片都放到这个指定的文件夹下
+        Folder: 'typora',       // 可以把上传的图片都放到这个指定的文件夹下
     },
 });
 ```
@@ -154,17 +155,30 @@ $.image.init({
 **上传到码云**
 
 ```javascript
+// ！！！注意当图片大于1M时， gitee 必须登录后才能查看！！！
 $.image.init({
     target:'gitee',
     gitee: {
-        message: "From:https://github.com/Thobian",     // 必须参数,提交消息
-        branch: "master",                               // 要提交到的分支（默认为：master）
-        token: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",   // token  
-        userName: "userName",                           // 用户名
-        repositorie: "repositorie",                     // 仓库名
-        Folder: "image",                                // 可以把上传的图片都放到这个指定的文件夹下
-        BucketDomain: "https://gitee.com/api/v5/repos/",
+            message: "From:https://github.com/Thobian",     // 必须参数,提交消息（默认为：add image）
+            branch: "master",                               // 要提交到的分支（默认为：master）
+            token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',   // 码云token申请地址 https://gitee.com/profile/personal_access_tokens
+            userName: 'userName',                           // 用户名 比如你的gitee个人主页地址是：https://gitee.com/thobian ，那userName就是：thobian
+            repositorie: 'repositorie',                     // 仓库名 比如你的gitee图片仓库地址是：https://gitee.com/thobian/typora，那么repositorie就是 typora
+            Folder: 'image',                                // 可以把上传的图片都放到这个指定的文件夹下
+            BucketDomain: 'https://gitee.com/api/v5/repos/',// 这个是不用变的，直接copy就好
     }
+});
+```
+
+**图片本地压缩后再上传**
+
+```javascript
+// 图片太大可以在本地进行压缩后再上传到服务器
+// 感谢 @mgsod 开源的前端压缩代码，仓库地址：https://github.com/mgsod/imgZip
+$.image.init({
+    //在原配置基础上增加下面配置开关。完整配置示例参考“上传到Github”
+    //打开图片压缩开关，1表示原图上传（默认）， 取值为：0<quality<=1，如果要压缩推荐 0.7
+    quality:0.7
 });
 ```
 
@@ -175,4 +189,7 @@ $.image.init({
 3. Windows 系统盘默认会保护起来，可能需要系统管理才能操作这些文件，如粘贴失败注意看是否权限问题；
 4. 默认本地图片，将会被上传到 [街边价](https://jiebianjia.com) 这个网站，本着方便使用的原则提供了默认图片地址，但本站点属于个人站点，如使用人太多会限制使用（包括但不限于不允许上传、清理已上传文件等）；【！！重要！！】
 5. 由于`第4点`，强烈建议你按照 `插件配置` 设置你自己的图片空间；
-6. 可能出现的Typora无法查看图片的情况。已发现的可能原因为beijing.aliyuncs.comtypora/202008/24，url组合出现错误，出现的原因是阿里云BucketDomain项链接末尾忘记加上'/'导致替换链接也缺失'/'
+6. 多个用户反馈出现网络图片被重复上传“bug”，这其实是你的typora打开了“复制图片到当前文件夹”的开关后导致的，如何解决，请查看： [#issue17](https://github.com/Thobian/typora-plugins-win-img/issues/17#issuecomment-594518628) 。
+7. 不少用户将图片保存到**github**后发现没法访问，不能访问的原因就由于众所周知的原因（谷歌为什么不能访问）。解决这个问题有两个办法：1）换图片保存的地方，比如换到国内的码云，2）开启github cdn功能，具体怎么开启在 **上传到Github** 配置部分有说明。
+8. Typora 其实就是在 一个换了主题的chrome（这种说法可能不准确），他也支持chrome的调试模式，通过`shift+F12` 可以打开，使用时如果遇到一些问题可以自己先打开调试模式看看说不定就自己发现并解决了。当然如果发现是一些典型的问题也可以反馈过来汇总维护，让后来的用户少踩坑。
+9. 可能出现的Typora无法查看图片的情况。已发现的可能原因为beijing.aliyuncs.comtypora/202008/24，url组合出现错误，出现的原因是阿里云BucketDomain项链接末尾忘记加上'/'导致替换链接也缺失'/'

@@ -11,6 +11,8 @@
         //github 默认上传到github
         //gitee码云
         target:'github',
+        //图片压缩开关，1表示原图上传 取值为：0<quality<=1，如果要压缩推荐 0.7
+        quality:1,
         
         //target=self 时涉及的配置参数
         self: {
@@ -77,14 +79,15 @@
         gitee: {
             message: "From:https://github.com/Thobian",     // 必须参数,提交消息（默认为：add image）
             branch: "master",                               // 要提交到的分支（默认为：master）
-            token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',   // token  
-            userName: 'userName',                           // 用户名
-            repositorie: 'repositorie',                     // 仓库名
+            token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',   // 码云token申请地址 https://gitee.com/profile/personal_access_tokens
+            userName: 'userName',                           // 用户名 比如你的gitee个人主页地址是：https://gitee.com/thobian ，那userName就是：thobian
+            repositorie: 'repositorie',                     // 仓库名 比如你的gitee图片仓库地址是：https://gitee.com/thobian/typora，那么repositorie就是 typora
             Folder: 'image',                                // 可以把上传的图片都放到这个指定的文件夹下
             BucketDomain: 'https://gitee.com/api/v5/repos/',
         },
-        
-        //==============回调函数==============
+    };
+    //==============回调函数==============
+    var callback = {
         // 上传成功
         onSuccess: function(url){
             //替换图片位置
@@ -190,6 +193,10 @@
     };
     
     var init = {
+        // 系统需要加载的第三方js文件
+        system: function(){
+            $.getScript( "./plugins/image/imgZip.js" );
+        },
         // 上传到自己服务时的初始化方法
         self: function(){
             
@@ -228,8 +235,8 @@
             
         },
         // 上传到gitee时的初始化方法
-        gitee: function() {
-
+        gitee: function(){
+            
         }
     };
     
@@ -497,35 +504,44 @@
     
     //读取文件为base64，再回调上传函数将文件发到服务器
     var loadImgAndSend = function(url){
+        var uploadSwitch = function(target, base64Str){
+            switch (target) {
+                case 'self':
+                    upload.self(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'tencent':
+                    upload.tencent(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'aliyun':
+                    upload.aliyun(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'upyun':
+                    upload.upyun(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'qiniu':
+                    upload.qiniu(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'github':
+                    upload.github(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                case 'gitee':
+                    upload.gitee(base64Str, callback.onSuccess, callback.onFailure);
+                    break;
+                default:
+                    callback.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/qiniu/github/gitee');
+            } 
+        };
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
             var reader = new FileReader();
             reader.onloadend = function() {
-                switch (setting.target) {
-                    case 'self':
-                        upload.self(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'tencent':
-                        upload.tencent(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'aliyun':
-                        upload.aliyun(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'upyun':
-                        upload.upyun(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'qiniu':
-                        upload.qiniu(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'github':
-                        upload.github(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    case 'gitee':
-                        upload.gitee(reader.result, setting.onSuccess, setting.onFailure);
-                        break;
-                    default:
-                        setting.onFailure('配置错误，不支持的图片上传方式，可选方式：self/tencent/aliyun/qiniu/github');
-                } 
+                if( +setting.quality<1 && +setting.quality>0 ){
+                    imgZip.photoCompress(helper.base64ToBlob(reader.result), {quality: +setting.quality}, function (base64) {
+                        uploadSwitch(setting.target, base64);
+                    });
+                }else{
+                    uploadSwitch(setting.target, reader.result);
+                }   
             }
             reader.readAsDataURL(xhr.response);
         };
@@ -539,16 +555,10 @@
     var noticeEle = 'image-result-notice';    
     $.image = {};
     $.image.init = function(options){
-        options = options||{};
-        setting.target = options.target||setting.target;
-        setting.self = options.self||setting.self;
-        setting.tencent = options.tencent||setting.tencent;
-        setting.aliyun = options.aliyun||setting.aliyun;
-        setting.qiniu = options.qiniu||setting.qiniu;
-        setting.github = options.github||setting.github;
-        setting.gitee = options.gitee || setting.gitee;
+        setting = options||setting;
         
         // 根据不同的文件存储位置，初始化不同的环境
+        init.system();
         switch (setting.target) {
             case 'self':
                 init.self();
